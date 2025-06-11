@@ -148,10 +148,21 @@ const checklistData = [
 ];
 
 export default function PrintingChecklist() {
-    const [checked, setChecked] = useState({});
+    // MODIFICATION 1: Load initial state from localStorage
+    const [checked, setChecked] = useState(() => {
+        const saved = localStorage.getItem('checklist-checked-items');
+        return saved ? JSON.parse(saved) : {};
+    });
+
     const [expanded, setExpanded] = useState({});
     const navigate = useNavigate();
 
+    // MODIFICATION 2: Save state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('checklist-checked-items', JSON.stringify(checked));
+    }, [checked]);
+
+    // Set the document title
     useEffect(() => {
         document.title = 'CareerPath Pro | Learning Path';
     }, []);
@@ -169,7 +180,7 @@ export default function PrintingChecklist() {
     // Calculate progress
     const totalItems = checklistData.reduce((acc, section) => acc + section.items.length, 0);
     const completedItems = Object.values(checked).filter(Boolean).length;
-    const progressPercentage = Math.round((completedItems / totalItems) * 100);
+    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     const handleGoBack = () => {
         navigate('/');
@@ -231,7 +242,7 @@ export default function PrintingChecklist() {
                         const sectionCompleted = section.items.filter((_, index) =>
                             checked[`${section.module}-${index}`]
                         ).length;
-                        const sectionProgress = Math.round((sectionCompleted / section.items.length) * 100);
+                        const sectionProgress = section.items.length > 0 ? Math.round((sectionCompleted / section.items.length) * 100) : 0;
 
                         return (
                             <div key={section.module} className="bg-white/70 backdrop-blur-sm border border-white/50 shadow-xl rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-300">
